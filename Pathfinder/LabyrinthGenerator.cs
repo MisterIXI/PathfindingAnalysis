@@ -10,16 +10,16 @@ namespace Pathfinder
     {
         public static void generateMaze(PathField mainField, int tickDelay)
         {
-            int gridSize = mainField.FieldGrid.GetLength(0);
+            int gridSize = mainField.fieldGrid.GetLength(0);
             bool[,] visited = new bool[gridSize, gridSize];
             List<FieldItem> toVisit = new List<FieldItem>();
 
             Random randomizer = new Random();
-            FieldItem candidate = mainField.FieldGrid[randomizer.Next(gridSize), randomizer.Next(gridSize)];
+            FieldItem candidate = mainField.fieldGrid[randomizer.Next(gridSize), randomizer.Next(gridSize)];
 
             while (candidate.GetStatus() == FieldStatus.Start || candidate.GetStatus() == FieldStatus.Target)
             {
-                candidate = mainField.FieldGrid[randomizer.Next(gridSize), randomizer.Next(gridSize)];
+                candidate = mainField.fieldGrid[randomizer.Next(gridSize), randomizer.Next(gridSize)];
             }
             toVisit.Add(candidate); //random Start point
             visited[candidate.position.X, candidate.position.Y] = true;
@@ -31,7 +31,7 @@ namespace Pathfinder
         {
             FieldItem currentPos = toVisit.ElementAt(0);
             toVisit.RemoveAt(0);
-            List<FieldItem> currentItems = discoverNeighbours(currentPos, mainField.FieldGrid, visited);
+            List<FieldItem> currentItems = discoverNeighbours(currentPos, mainField.fieldGrid, visited);
             if (currentItems.Count > 0)
             {
                 FieldItem luckyCandidate = chooseRandomNeighbour(currentItems);

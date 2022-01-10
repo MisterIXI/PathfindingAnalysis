@@ -14,7 +14,8 @@ namespace Pathfinder
         public bool setStartPointFlag = false;
         public bool setTargetPointFlag = false;
 
-        public FieldItem[,] FieldGrid;
+        public FieldItem[,] fieldGrid;
+        public DetailField[,] detailsGrid;
         public Coord StartPoint;
         public Coord TargetPoint;
 
@@ -26,94 +27,117 @@ namespace Pathfinder
 
         public void CreateNewGrid(int gridSize)
         {
-            FieldGrid = new FieldItem[gridSize, gridSize];
+            fieldGrid = new FieldItem[gridSize, gridSize];
+            detailsGrid = new DetailField[GridWindow.DETAIL_SIZE, GridWindow.DETAIL_SIZE];
             StartPoint = new Coord(gridSize - 1, 0);
             TargetPoint = new Coord(0, gridSize - 1);
         }
 
         public FieldStatus GetItemStatus(int x, int y)
         {
-            return FieldGrid[x, y].GetStatus();
+            return fieldGrid[x, y].GetStatus();
         }
 
-        public void UpdateItem (int x, int y, FieldStatus newStatus)
+        public void UpdateItem(int x, int y, FieldStatus newStatus)
         {
             //todo: only one target and start can exist --> save pos and kill old one accordingly
 
-            FieldGrid[x, y].updateStatus(newStatus);
+            fieldGrid[x, y].updateStatus(newStatus);
         }
 
-        public List<FieldItem> getSurrounding (Coord position, bool diagAllowed)
+        public List<FieldItem> getSurrounding(FieldItem fieldItem, bool diagAllowed)
         {
-            
-            List <FieldItem> surrounding = new List<FieldItem>();
-            int x = position.X;
-            int y = position.Y;
-            if(x+1 < FieldGrid.GetLength(0))//right side
+
+            List<FieldItem> surrounding = new List<FieldItem>();
+            int x = fieldItem.position.X;
+            int y = fieldItem.position.Y;
+            if (x + 1 < fieldGrid.GetLength(0))//right side
             {
-                if(isImportantField(x + 1, y))
-                    surrounding.Add(FieldGrid[x + 1, y]);
+                if (isImportantField(x + 1, y))
+                    surrounding.Add(fieldGrid[x + 1, y]);
                 if (diagAllowed)
                 {
                     if (y - 1 >= 0)
                         if (isImportantField(x + 1, y - 1))
-                            surrounding.Add(FieldGrid[x + 1, y - 1]);
-                    if (y + 1 < FieldGrid.GetLength(1))
+                            surrounding.Add(fieldGrid[x + 1, y - 1]);
+                    if (y + 1 < fieldGrid.GetLength(1))
                         if (isImportantField(x + 1, y + 1))
-                            surrounding.Add(FieldGrid[x + 1, y + 1]);
+                            surrounding.Add(fieldGrid[x + 1, y + 1]);
                 }
             }
-            if(x-1 >= 0) //left side
+            if (x - 1 >= 0) //left side
             {
                 if (isImportantField(x - 1, y))
-                    surrounding.Add(FieldGrid[x - 1, y]);
+                    surrounding.Add(fieldGrid[x - 1, y]);
                 if (diagAllowed)
                 {
                     if (y - 1 >= 0)
                         if (isImportantField(x - 1, y - 1))
-                            surrounding.Add(FieldGrid[x - 1, y - 1]);
-                    if (y + 1 < FieldGrid.GetLength(1))
+                            surrounding.Add(fieldGrid[x - 1, y - 1]);
+                    if (y + 1 < fieldGrid.GetLength(1))
                         if (isImportantField(x - 1, y + 1))
-                            surrounding.Add(FieldGrid[x - 1, y + 1]);
+                            surrounding.Add(fieldGrid[x - 1, y + 1]);
                 }
             }
             if (y - 1 >= 0) //upper side
                 if (isImportantField(x, y - 1))
-                    surrounding.Add(FieldGrid[x, y - 1]);
-            if (y + 1 < FieldGrid.GetLength(1)) //lower side
+                    surrounding.Add(fieldGrid[x, y - 1]);
+            if (y + 1 < fieldGrid.GetLength(1)) //lower side
                 if (isImportantField(x, y + 1))
-                    surrounding.Add(FieldGrid[x, y + 1]);
-            List<FieldItem> results = new List<FieldItem>();
-            foreach (FieldItem item in surrounding) //fix this shit
-            {
-                if(item.GetStatus() == FieldStatus.Target)
-                {
-                    item.sourceDirection = getFIFromCoord(position);
-                    results.Add(item);
-                }
-                else
-                if(!(item.GetStatus() == FieldStatus.Evaluated && getFIFromCoord(position).costToSource + 1 >= item.costToSource))
-                    if(item.GetStatus() != FieldStatus.ToEvaluate || getFIFromCoord(position).costToSource + 1  < item.costToSource)
-                    {
-                        item.sourceDirection = getFIFromCoord(position);
-                        item.costToSource = getFIFromCoord(position).costToSource + 1;
-                        item.totalCost = item.costToSource + item.costToTarget;
-                        if (item.GetStatus() != FieldStatus.ToEvaluate )//&& item.GetStatus() != FieldStatus.Evaluated)
-                        {
-                            results.Add(item);
-                            item.updateStatus(FieldStatus.ToEvaluate);
-                        }
-                    }
-                
-                
-            }
+                    surrounding.Add(fieldGrid[x, y + 1]);
+
             //getFIFromCoord(position).updateStatus(FieldStatus.Evaluated);
-            return results;
+            return surrounding;
+        }
+
+        public void updateDetails(FieldItem centerFieldItem)
+        {
+            FieldItem centerFI = boundaryHelper(centerFieldItem);
+            for (int i = 0; i < detailsGrid.GetLength(0); i++)
+            {
+                for (int j = 0; j < detailsGrid.GetLength(1); j++)
+                {
+                    //copyDetailElements(detailsGrid[i, j].dataSource, fieldGrid[centerFI.position.X - GridWindow.DETAIL_SIZE / 2 + i, centerFI.position.Y - GridWindow.DETAIL_SIZE / 2 + j]);
+                    detailsGrid[i, j].dataSource = fieldGrid[centerFI.position.X - GridWindow.DETAIL_SIZE / 2 + i, centerFI.position.Y - GridWindow.DETAIL_SIZE / 2 + j];
+                    detailsGrid[i, j].renderDetails();
+                }
+            }
+        }
+        //private void copyDetailElements(FieldItem a, FieldItem b)
+        //{
+        //    b.detailGCost_L = a.detailGCost_L;
+        //    b.detailHCost_L = a.detailHCost_L;
+        //    b.detailFCost_L = a.detailFCost_L;
+        //    b.detailArrow = a.detailArrow;
+        //    b.detailRectangle = a.detailRectangle;
+        //}
+        public FieldItem boundaryHelper(FieldItem toCenter)
+        {
+            FieldItem currFI = toCenter;
+            //correct horizontaly (x)
+            while (fieldGrid.GetLength(0) <= currFI.position.X + GridWindow.DETAIL_SIZE / 2)
+            {
+                currFI = fieldGrid[currFI.position.X - 1, currFI.position.Y];
+            }
+            while (0 > currFI.position.X - GridWindow.DETAIL_SIZE / 2)
+            {
+                currFI = fieldGrid[currFI.position.X + 1, currFI.position.Y];
+            }
+            //correct vertically (y)
+            while (fieldGrid.GetLength(1) <= currFI.position.Y + GridWindow.DETAIL_SIZE / 2)
+            {
+                currFI = fieldGrid[currFI.position.X, currFI.position.Y - 1];
+            }
+            while (0 > currFI.position.Y - GridWindow.DETAIL_SIZE / 2)
+            {
+                currFI = fieldGrid[currFI.position.X, currFI.position.Y + 1];
+            }
+            return currFI;
         }
 
         public bool isImportantField(int x, int y)
         {
-            switch (FieldGrid[x, y].GetStatus())
+            switch (fieldGrid[x, y].GetStatus())
             {
                 case FieldStatus.Blocked:
                 case FieldStatus.Start:
@@ -122,21 +146,21 @@ namespace Pathfinder
                     return true;
             }
         }
-        public void SetMouseRegistered (bool shouldBeEnabled)
+        public void SetMouseRegistered(bool shouldBeEnabled)
         {
-            if(areMouseEventsRegisterd != shouldBeEnabled)
+            if (areMouseEventsRegisterd != shouldBeEnabled)
             {
-                for (int i = 0; i < FieldGrid.GetLength(0); i++)
+                for (int i = 0; i < fieldGrid.GetLength(0); i++)
                 {
-                    for (int j = 0; j < FieldGrid.GetLength(1); j++)
+                    for (int j = 0; j < fieldGrid.GetLength(1); j++)
                     {
                         if (shouldBeEnabled)
                         {
-                            FieldGrid[i, j].RegisterMouseEvents();
+                            fieldGrid[i, j].RegisterMouseEvents();
                         }
                         else
                         {
-                            FieldGrid[i, j].UnregisterMouseEvents();
+                            fieldGrid[i, j].UnregisterMouseEvents();
                         }
                     }
                 }
@@ -144,20 +168,32 @@ namespace Pathfinder
             }
         }
 
+        public int getDistanceBetweenTwoNeighbours(FieldItem a, FieldItem b, bool diagAllowed)
+        {
+            if (!a.getNeighbours(diagAllowed).Contains(b) && b.position != StartPoint)
+                throw new ArgumentException("Provided FIs are not Neighbours or illegaly diagonal!");
+            if (a.position.X == b.position.X || a.position.Y == b.position.Y)
+                return FieldItem.NORMAL_COST;
+            else
+                return FieldItem.DIAGONAL_COST;
+        }
+
         public FieldItem getStartPoint()
         {
-            return FieldGrid[StartPoint.X, StartPoint.Y];
+            return fieldGrid[StartPoint.X, StartPoint.Y];
         }
 
         public FieldItem getTargetPoint()
         {
-            return FieldGrid[TargetPoint.X, TargetPoint.Y];
+            return fieldGrid[TargetPoint.X, TargetPoint.Y];
         }
 
         public FieldItem getFIFromCoord(Coord pos)
         {
-            return FieldGrid[pos.X, pos.Y];
+            return fieldGrid[pos.X, pos.Y];
         }
+
+
     }
 
 }

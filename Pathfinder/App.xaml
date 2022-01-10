@@ -1,7 +1,7 @@
-﻿<Application x:Class="Pathfinder.App"
+﻿<Application x:Class="PathfindingAnalysis.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:Pathfinder"
+             xmlns:local="clr-namespace:PathfindingAnalysis"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
          

@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.32014.148
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pathfinder", "Pathfinder\Pathfinder.csproj", "{E5BF250C-F599-4A19-9464-ED8873CF1214}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PathfindingAnalysis", "Pathfinder\PathfindingAnalysis.csproj", "{CADDD605-EF84-46FE-8624-F72C609C59D1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,15 +11,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{E5BF250C-F599-4A19-9464-ED8873CF1214}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E5BF250C-F599-4A19-9464-ED8873CF1214}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E5BF250C-F599-4A19-9464-ED8873CF1214}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E5BF250C-F599-4A19-9464-ED8873CF1214}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CADDD605-EF84-46FE-8624-F72C609C59D1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CADDD605-EF84-46FE-8624-F72C609C59D1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CADDD605-EF84-46FE-8624-F72C609C59D1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CADDD605-EF84-46FE-8624-F72C609C59D1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {97A3B489-3AF9-4D6F-9F34-08221999E755}
+		SolutionGuid = {25F470B7-F54C-45F2-B759-8D35AE8E18B8}
 	EndGlobalSection
 EndGlobal

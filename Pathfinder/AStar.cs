@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Media;
 
 namespace Pathfinder
 {
@@ -28,52 +29,59 @@ namespace Pathfinder
             this.stepDelay = stepDelay;
             stopFlag = false;
         }
-        private void findTick(SortedList<int, FieldItem> availableNodes, bool diagAllowed)
+        private void findPath(PriorityQueue<FieldItem, int> availableNodes, bool diagAllowed)
         {
             bool foundPath = false;
-            FieldItem currentPoint = availableNodes.First().Value;
-            availableNodes.RemoveAt(0);
-            if (currentPoint == targetPoint)
-                foundPath = true;
-            else
+            while (availableNodes.Count > 0 && !foundPath)
             {
-                foreach (FieldItem e in currentPoint.getNeighbours(diagAllowed))
-                {
-                    if(!availableNodes.ContainsValue(e))
-                        availableNodes.Add(e.calcCost(targetPoint), e);
-                    
-                }
-                //currentPoint.updateStatus(FieldStatus.Evaluated);
-            }
-            if (foundPath)
-                drawFinishedPath();
-            else
-            {
-                if (stepDelay > 0 && !stopFlag)
-                {
-                    System.Windows.Application.Current.Dispatcher.Invoke(() => currentPoint.sourceRectangle.Fill = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.HotPink));
-                    //Task.Delay(stepDelay-10).ContinueWith(_ => currentPoint.updateStatus(FieldStatus.Evaluated));
-                    Task.Delay(stepDelay).ContinueWith(_ => { currentPoint.updateStatus(FieldStatus.Evaluated); findTick(availableNodes, diagAllowed); });
+                FieldItem currentPoint = availableNodes.Dequeue();
+                if (currentPoint == targetPoint)
+                {//finished pathing
+                    foundPath = true;
+                    drawFinishedPath();
                 }
                 else
-                {
-                    if (availableNodes.Count > 0)
+                {//not at target
+                    //process current Neighbours
+                    foreach (FieldItem e in currentPoint.getNeighbours(diagAllowed))
+                    {
+                        if (e.GetStatus() != FieldStatus.Evaluated)
+                        {
+                            e.updateCosts(targetPoint, currentPoint, diagAllowed);
+
+                            if (!availableNodes.UnorderedItems.Contains((e, e.getHCost())))
+                                availableNodes.Enqueue(e, e.getHCost());
+                        }
+                    }
+                    if (stepDelay > 0)
+                    {
+                        System.Windows.Application.Current.Dispatcher.Invoke(() => currentPoint.sourceRectangle.Fill = Brushes.HotPink);
+                        Task.Delay(stepDelay).ContinueWith(_ =>
+                        {
+                            if (currentPoint.GetStatus() != FieldStatus.Start)
+                                currentPoint.updateStatus(FieldStatus.Evaluated);
+                        });
+                    }
+                    else
                     {
                         if (currentPoint.GetStatus() != FieldStatus.Start)
                             currentPoint.updateStatus(FieldStatus.Evaluated);
-                        findTick(availableNodes, diagAllowed);
                     }
-                        
                 }
             }
         }
 
         public void drawFinishedPath()
         {
-            FieldItem next = targetPoint.sourceDirection;
+            if (targetPoint.sourceDirection == null)
+                throw new ShouldNotHappenException("Target point didn't get an direction asigned. Can't finish what I started!");
+
+            FieldItem? next = targetPoint.sourceDirection;
 
             while (next != startPoint)
             {
+                if (next == null)
+                    throw new ShouldNotHappenException("Current point didn't get an direction asigned. Can't finish what I started!");
                 next.updateStatus(FieldStatus.IsPath);
                 next = next.sourceDirection;
                 pathLength++;
@@ -91,18 +99,18 @@ namespace Pathfinder
                 throw new ArgumentException();
 
             bool foundPath = false;
-            SortedList<int , FieldItem> availableNodes = new SortedList<int, FieldItem>(new DuplicateComparer<int>());
-            
+            //SortedList<int , FieldItem> availableNodes = new SortedList<int, FieldItem>(new DuplicateComparer<int>());
+            PriorityQueue<FieldItem, int> availableNodes = new PriorityQueue<FieldItem, int>();
 
-            foreach(FieldItem e in startPoint.getNeighbours(diagAllowed))
+            foreach (FieldItem e in startPoint.getNeighbours(diagAllowed))
             {
-                availableNodes.Add(e.calcCost(targetPoint),e);
-                
+                e.updateCosts(targetPoint, startPoint, diagAllowed);
+                availableNodes.Enqueue(e, e.getHCost());
+
             }
-            FieldItem currentPoint = null;
-            //while (!foundPath && availableNodes.Count() > 0)
-            findTick(availableNodes, diagAllowed);
-            
+
+            findPath(availableNodes, diagAllowed);
+
         }
 
         public void setStepDelay(int stepDelay)
