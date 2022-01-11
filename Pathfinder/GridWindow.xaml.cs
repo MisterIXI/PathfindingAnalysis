@@ -29,10 +29,10 @@ namespace Pathfinder
         public GridWindow()
         {
             gridSize = 50;
+            currentAlg = new AStar(mainField, this, 1);
             InitializeComponent();
             ResizeGrid(gridSize);
             createDetailWindow(DETAIL_SIZE);
-            currentAlg = new AStar(mainField, this, (int)SL_DelaySlider.Value);
         }
         public void createDetailWindow(int detailSize)
         {
@@ -109,7 +109,7 @@ namespace Pathfinder
         public void ResizeGrid(int gridSize)
         {
             mainField = new PathField(gridSize, this);
-
+            currentAlg.setWorkingField(mainField);
 
             for (int i = 0; i < gridSize; i++)
             {
@@ -264,6 +264,24 @@ namespace Pathfinder
         {
             LB_DelayLabel.Content = "Delay(ms):\n" + e.NewValue;
             currentAlg.setStepDelay((int)e.NewValue);
+        }
+
+        private void CB_Delay_Clicked(object sender, RoutedEventArgs e)
+        {
+            if (!CB_Delay.IsChecked.HasValue)
+                throw new ShouldNotHappenException("How is this CheckBox Value null?");
+            if (CB_Delay.IsChecked.Value)
+            {
+                currentAlg.setStepDelay((int)SL_DelaySlider.Value);
+                SL_DelaySlider.IsEnabled = true;
+                LB_DelayLabel.Content = "Delay(ms):\n" + (int)SL_DelaySlider.Value;
+            }
+            else
+            {
+                currentAlg.setStepDelay(0);
+                SL_DelaySlider.IsEnabled = false;
+                LB_DelayLabel.Content = "Delay(ms):\n0";
+            }
         }
 
         private void BT_GenMaze_Click(object sender, RoutedEventArgs e)

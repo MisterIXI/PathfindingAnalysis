@@ -12,5 +12,6 @@ namespace Pathfinder
         void setStopFlag(bool stopFlag);
         void setStepDelay(int stepDelay);
         void drawPath(FieldItem startPoint, FieldItem targetPoint, bool diagAllowed);
+        void setWorkingField(PathField field);
     }
 }

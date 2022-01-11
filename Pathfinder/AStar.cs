@@ -151,5 +151,10 @@ namespace Pathfinder
         {
             this.stepDelay = stepDelay;
         }
+
+        public void setWorkingField(PathField pathField)
+        {
+            workField = pathField;
+        }
     }
 }
