@@ -38,7 +38,7 @@ namespace Pathfinder
 
         public static readonly int DIAGONAL_COST = 14;
         public static readonly int NORMAL_COST = 10;
-        readonly string HEURISTIC = "diagonal";
+        readonly string HEURISTIC = "qiao";
 
 
         private PathField parentField;
@@ -67,7 +67,8 @@ namespace Pathfinder
         #endregion Costs
 
         //only for placeholder FIs
-        public FieldItem() {
+        public FieldItem()
+        {
             sourceRectangle = null;
 
         }
@@ -86,7 +87,11 @@ namespace Pathfinder
         }
         public void updateCosts(FieldItem target, FieldItem updateSource, bool diagAllowed)
         {
-            calculateHCost(target);
+            if (this == updateSource)
+                throw new ShouldNotHappenException("FieldItem tried to update itself... That's illegal!");
+
+            if (hCost == 0)
+                calculateHCost(target);
             int newGCost = updateSource.gCost + parentField.getDistanceBetweenTwoNeighbours(this, updateSource, diagAllowed);
             if (newGCost < gCost || gCost == 0)
             {
@@ -102,16 +107,36 @@ namespace Pathfinder
         }
         public int calcCost(FieldItem target)
         {
+            if (this == target)
+                return 0;
             switch (HEURISTIC)
             {
-                case "diagonal":
+                case "stanford_diag":
+                    {
+                        //"diagonal" from here http://theory.stanford.edu/~amitp/GameProgramming/Heuristics.html
+                        int distanceX = Math.Abs(position.X - target.position.X);
+                        int distanceY = Math.Abs(position.Y - target.position.Y);
+                        return NORMAL_COST * (distanceY + distanceX) + (DIAGONAL_COST - 2 * NORMAL_COST) * Math.Min(distanceY, distanceX);
+                    }
+                case "SebLague":
+                    {
+                        int dx = Math.Abs(position.X - target.position.X);
+                        int dy = Math.Abs(position.Y - target.position.Y);
+                        if (dx > dy)
+                            return DIAGONAL_COST * dy + NORMAL_COST * (dx - dy);
+                        return DIAGONAL_COST * dx + NORMAL_COST * (dy - dx);
 
-                    //"diagonal" from here http://theory.stanford.edu/~amitp/GameProgramming/Heuristics.html
-                    int distanceY = Math.Abs(position.Y - target.position.Y);
-                    int distanceX = Math.Abs(position.X - target.position.X);
-                    return NORMAL_COST * (distanceY + distanceX) + (DIAGONAL_COST - 2 * NORMAL_COST) * Math.Min(distanceY, distanceX);
+                    }
+                case "qiao":
+                    {
+                        int dx = Math.Abs(position.X - target.position.X);
+                        int dy = Math.Abs(position.Y - target.position.Y);
+                        if (NORMAL_COST * (dx + dy) == 0)
+                            throw new ShouldNotHappenException("What");
+                        return NORMAL_COST * (dx + dy);
+                    }
                 default:
-                    throw new ShouldNotHappenException("Heuristic constant not set right");
+                    throw new ShouldNotHappenException("Heuristic constant not set right" + this);
             }
         }
 
@@ -150,7 +175,7 @@ namespace Pathfinder
 
             status = newStatus;
 
-            
+
 
             Application.Current.Dispatcher.Invoke(() => sourceRectangle.Fill = new SolidColorBrush(getStatusColor(newStatus)));
         }
@@ -206,7 +231,7 @@ namespace Pathfinder
             sourceRectangle.MouseDown -= Rec_OnMouse;
         }
 
-       
+
 
         private void Rec_OnMouse(object sender, MouseEventArgs e)
         {
@@ -224,8 +249,9 @@ namespace Pathfinder
                     parentField.setTargetPointFlag = false;
                     parentWindow.BT_TargetFlag.IsEnabled = true;
                 }
-                else
+                else if (!Keyboard.IsKeyDown(Key.LeftAlt))
                 {
+
                     updateStatus(FieldStatus.Blocked);
                 }
             }
@@ -233,7 +259,8 @@ namespace Pathfinder
             {
                 updateStatus(FieldStatus.Free);
             }
-            parentField.updateDetails(this);
+            if (!Keyboard.IsKeyDown(Key.LeftAlt))
+                parentField.updateDetails(this);
             //TODO: implement nice output
             //if (sourceDirection != null)
             //System.Windows.Application.Current.Dispatcher.Invoke(() => parentWindow.LB_Stats.Content = $"costToSource: {costToSource}\nPos:{position.X}|{position.Y}\nsourceDir: {sourceDirection.position.X}|{sourceDirection.position.Y}");

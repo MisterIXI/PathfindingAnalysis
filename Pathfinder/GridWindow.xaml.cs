@@ -71,12 +71,13 @@ namespace Pathfinder
                     labelH.HorizontalAlignment = HorizontalAlignment.Right;
                     Grid.SetColumn(labelH, j);
                     Grid.SetRow(labelH, i);
-                    Label labelF = new Label();
-                    labelF.VerticalAlignment = VerticalAlignment.Bottom;
-                    labelF.HorizontalAlignment = HorizontalAlignment.Center;
-                    labelF.Content = i + " | " + j;
-                    Grid.SetColumn(labelF, j);
-                    Grid.SetRow(labelF, i);
+                    TextBlock textB_F = new TextBlock();
+                    textB_F.VerticalAlignment = VerticalAlignment.Bottom;
+                    textB_F.HorizontalAlignment = HorizontalAlignment.Center;
+                    textB_F.Text = i + " | " + j;
+                    textB_F.TextAlignment = TextAlignment.Center;
+                    Grid.SetColumn(textB_F, j);
+                    Grid.SetRow(textB_F, i);
                     Path arrow = new Path();
                     arrow.VerticalAlignment = VerticalAlignment.Top;
                     arrow.HorizontalAlignment = HorizontalAlignment.Center;
@@ -91,16 +92,16 @@ namespace Pathfinder
                     newVB.Child = newRect;
                     DetailsGrid.Children.Add(newVB);
                     DetailsGrid.Children.Add(labelG);
-                    DetailsGrid.Children.Add(labelH); 
-                    DetailsGrid.Children.Add(labelF);
+                    DetailsGrid.Children.Add(labelH);
+                    DetailsGrid.Children.Add(textB_F);
                     DetailsGrid.Children.Add(arrow);
                     mainField.detailsGrid[i, j] = new DetailField(
                         labelG,
                         labelH,
-                        labelF,
+                        textB_F,
                         arrow,
                         newRect,
-                        mainField.fieldGrid[center.position.X - DETAIL_SIZE/2 + i, center.position.Y - DETAIL_SIZE/2 + j]                        
+                        mainField.fieldGrid[center.position.X - DETAIL_SIZE / 2 + i, center.position.Y - DETAIL_SIZE / 2 + j]
                         );
                 }
             }
@@ -182,6 +183,7 @@ namespace Pathfinder
             //Application.Current.Dispatcher.Invoke(() => LB_Stats.Content = "Length: " + pathLength);
             Application.Current.Dispatcher.Invoke(() => BT_GridReset.IsEnabled = true);
             Application.Current.Dispatcher.Invoke(() => BT_GridGen.IsEnabled = true);
+            Application.Current.Dispatcher.Invoke(() => BT_PauseSearch.IsEnabled = false);
 
         }
 
@@ -208,6 +210,21 @@ namespace Pathfinder
             BT_TargetFlag.IsEnabled = true;
         }
 
+        private void BT_Pause_Click(object sender, RoutedEventArgs e)
+        {
+            if (BT_PauseSearch.Content.Equals("Pause"))
+            {
+                currentAlg.setStopFlag(true);
+                BT_PauseSearch.Content = "Continue";
+            }
+            else
+            {
+                BT_PauseSearch.Content = "Pause";
+                currentAlg.continueSearch();
+                BT_PauseSearch.Content = "Continue";
+                BT_PauseSearch.IsEnabled = false;
+            }
+        }
         private void BT_StartFlag_Click(object sender, RoutedEventArgs e)
         {
             if (mainField.setTargetPointFlag)
@@ -237,8 +254,10 @@ namespace Pathfinder
             BT_GridReset.IsEnabled = false;
             BT_GridGen.IsEnabled = false;
             BT_StartSearch.IsEnabled = false;
+            BT_PauseSearch.IsEnabled = true;
+            BT_PauseSearch.Content = "Pause";
             currentAlg.drawPath(mainField.getStartPoint(), mainField.getTargetPoint(), CB_AllowDiag.IsChecked.Value);
-           // LB_Stats.Content = "Steps: ";
+
         }
 
         private void DelaySliderChanged(object sender, RoutedPropertyChangedEventArgs<double> e)

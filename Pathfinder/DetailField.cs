@@ -16,12 +16,12 @@ namespace Pathfinder
     {
         readonly Label detailGCost_L;
         public Label detailHCost_L;
-        public Label detailFCost_L;
+        public TextBlock detailFCost_L;
         public Path detailArrow;
         public Rectangle detailRectangle;
         public FieldItem dataSource;
 
-        public DetailField(Label gCostL, Label hCostL, Label fCostL, Path arrow, Rectangle rec, FieldItem field)
+        public DetailField(Label gCostL, Label hCostL, TextBlock fCostL, Path arrow, Rectangle rec, FieldItem field)
         {
             detailGCost_L = gCostL;
             detailHCost_L = hCostL;
@@ -34,7 +34,7 @@ namespace Pathfinder
         public void renderDetails()
         {
             //if(this)
-            detailFCost_L.Content = dataSource.ToString();
+            detailFCost_L.Text = dataSource.getFCost() + "\n" +  dataSource.ToString();
             detailGCost_L.Content = dataSource.gCost;
             detailHCost_L.Content = dataSource.getHCost();
 
@@ -43,10 +43,10 @@ namespace Pathfinder
             {
                 detailArrow.Visibility = Visibility.Visible;
                 //detailArrow Angle 0 == right; Angle 45 == downright; Angle 90 == down
-                switch (dataSource.position.X - dataSource.sourceDirection.position.X)
+                switch (dataSource.position.Y - dataSource.sourceDirection.position.Y)
                 {
                     case -1: //right of this
-                        switch (dataSource.position.Y - dataSource.sourceDirection.position.Y)
+                        switch (dataSource.position.X - dataSource.sourceDirection.position.X)
                         {
                             case -1: //down of this
                                 detailArrow.RenderTransform = new RotateTransform(45);
@@ -60,7 +60,7 @@ namespace Pathfinder
                         }
                         break;
                     case 0://same column
-                        switch (dataSource.position.Y - dataSource.sourceDirection.position.Y)
+                        switch (dataSource.position.X - dataSource.sourceDirection.position.X)
                         {
                             case -1: //down of this
                                 detailArrow.RenderTransform = new RotateTransform(90);
@@ -73,7 +73,7 @@ namespace Pathfinder
                         }
                         break;
                     case 1://left of this
-                        switch (dataSource.position.Y - dataSource.sourceDirection.position.Y)
+                        switch (dataSource.position.X - dataSource.sourceDirection.position.X)
                         {
                             case -1: //down of this
                                 detailArrow.RenderTransform = new RotateTransform(135);
@@ -87,10 +87,10 @@ namespace Pathfinder
                         }
                         break;
                 }
-                Application.Current.Dispatcher.Invoke(() => detailRectangle.Fill = new SolidColorBrush(dataSource.getStatusColor(dataSource.status)));
             }
             else
                 detailArrow.Visibility = Visibility.Hidden;
+            Application.Current.Dispatcher.Invoke(() => detailRectangle.Fill = new SolidColorBrush(dataSource.getStatusColor(dataSource.status)));
         }
     }
 }

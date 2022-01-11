@@ -14,10 +14,13 @@ namespace Pathfinder
         private FieldItem targetPoint;
         private FieldItem startPoint;
 
-        private bool stopFlag;
+        public bool stopFlag;
         private bool isPaused = false;
         public int stepDelay;
         public int pathLength { get; private set; }
+
+        PriorityQueue<FieldItem, int>? stashNodeQueue;
+        bool stashDiagAllowed;
 
         public AStar(PathField pathField, GridWindow gridWindow, int stepDelay)
         {
@@ -29,38 +32,43 @@ namespace Pathfinder
             this.stepDelay = stepDelay;
             stopFlag = false;
         }
-        private void findPath(PriorityQueue<FieldItem, int> availableNodes, bool diagAllowed)
+        private async void findPath(PriorityQueue<FieldItem, int> availableNodes, bool diagAllowed)
         {
             bool foundPath = false;
-            while (availableNodes.Count > 0 && !foundPath)
+            while (availableNodes.Count > 0 && !foundPath && !stopFlag)
             {
-                FieldItem currentPoint = availableNodes.Dequeue();
+            FieldItem currentPoint = availableNodes.Dequeue();
+
                 if (currentPoint == targetPoint)
                 {//finished pathing
                     foundPath = true;
+                    
                     drawFinishedPath();
                 }
                 else
                 {//not at target
-                    //process current Neighbours
+                 //process current Neighbours
                     foreach (FieldItem e in currentPoint.getNeighbours(diagAllowed))
                     {
                         if (e.GetStatus() != FieldStatus.Evaluated)
                         {
                             e.updateCosts(targetPoint, currentPoint, diagAllowed);
 
-                            if (!availableNodes.UnorderedItems.Contains((e, e.getHCost())))
-                                availableNodes.Enqueue(e, e.getHCost());
+                            if (!availableNodes.UnorderedItems.Contains((e, e.getFCost())))
+                            {
+                                availableNodes.Enqueue(e, e.getFCost());
+                                if(e != targetPoint)
+                                    e.updateStatus(FieldStatus.ToEvaluate);
+                            }
                         }
                     }
                     if (stepDelay > 0)
                     {
                         System.Windows.Application.Current.Dispatcher.Invoke(() => currentPoint.sourceRectangle.Fill = Brushes.HotPink);
-                        Task.Delay(stepDelay).ContinueWith(_ =>
-                        {
-                            if (currentPoint.GetStatus() != FieldStatus.Start)
-                                currentPoint.updateStatus(FieldStatus.Evaluated);
-                        });
+                        workField.redrawDetails();
+                        await asyncSleep();
+                        if (currentPoint.GetStatus() != FieldStatus.Start)
+                            currentPoint.updateStatus(FieldStatus.Evaluated);
                     }
                     else
                     {
@@ -69,8 +77,21 @@ namespace Pathfinder
                     }
                 }
             }
+            if (stopFlag)
+            {
+                stashDiagAllowed = diagAllowed;
+                stashNodeQueue = availableNodes;
+            }
+            else if(!foundPath)
+            {
+                throw new ShouldNotHappenException("Couldn't find a path!");
+            }
         }
 
+        async Task asyncSleep()
+        {
+            await Task.Delay(stepDelay);
+        }
         public void drawFinishedPath()
         {
             if (targetPoint.sourceDirection == null)
@@ -86,10 +107,11 @@ namespace Pathfinder
                 next = next.sourceDirection;
                 pathLength++;
             }
+            workField.redrawDetails();
             parentWindow.finishedSearch(pathLength);
             //System.Windows.Application.Current.Dispatcher.Invoke(() => parentWindow.LB_Stats.Content = "Length: " + pathLength);
         }
-        public void drawPath(FieldItem startPoint, FieldItem targetPoint, bool diagAllowed)
+         public void drawPath(FieldItem startPoint, FieldItem targetPoint, bool diagAllowed)
         {
             stopFlag = false;
             pathLength = 0;
@@ -105,14 +127,26 @@ namespace Pathfinder
             foreach (FieldItem e in startPoint.getNeighbours(diagAllowed))
             {
                 e.updateCosts(targetPoint, startPoint, diagAllowed);
-                availableNodes.Enqueue(e, e.getHCost());
+                availableNodes.Enqueue(e, e.getFCost());
+                e.updateStatus(FieldStatus.ToEvaluate);
 
             }
 
             findPath(availableNodes, diagAllowed);
 
         }
+        public void continueSearch()
+        {
+            if (stashNodeQueue == null)
+                throw new ShouldNotHappenException("NodeQueue was not properly stashed, or Pause button not correctly updated!");
+            stopFlag = false;
+            findPath(stashNodeQueue, stashDiagAllowed);
+        }
 
+        public void setStopFlag(bool stopFlag)
+        {
+            this.stopFlag = stopFlag;
+        }
         public void setStepDelay(int stepDelay)
         {
             this.stepDelay = stepDelay;

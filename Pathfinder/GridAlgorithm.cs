@@ -8,6 +8,8 @@ namespace Pathfinder
 {
     interface GridAlgorithm
     {
+        void continueSearch();
+        void setStopFlag(bool stopFlag);
         void setStepDelay(int stepDelay);
         void drawPath(FieldItem startPoint, FieldItem targetPoint, bool diagAllowed);
     }

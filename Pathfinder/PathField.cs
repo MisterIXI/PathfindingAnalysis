@@ -103,6 +103,16 @@ namespace Pathfinder
                 }
             }
         }
+        public void redrawDetails()
+        {
+            for (int i = 0; i < detailsGrid.GetLength(0); i++)
+            {
+                for (int j = 0; j < detailsGrid.GetLength(1); j++)
+                {
+                    detailsGrid[i, j].renderDetails();
+                }
+            }
+        }
         //private void copyDetailElements(FieldItem a, FieldItem b)
         //{
         //    b.detailGCost_L = a.detailGCost_L;
