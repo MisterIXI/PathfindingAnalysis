@@ -157,6 +157,8 @@ namespace Pathfinder
 
         private void ResetGrid()
         {
+            FieldItem startFI = mainField.getStartPoint();
+            FieldItem targetFI = mainField.getTargetPoint();
             for (int i = 0; i < mainField.fieldGrid.GetLength(0); i++)
             {
                 for (int j = 0; j < mainField.fieldGrid.GetLength(1); j++)
@@ -167,8 +169,8 @@ namespace Pathfinder
                     mainField.fieldGrid[i, j].sourceDirection = null;
                 }
             }
-            mainField.UpdateItem(gridSize - 1, 0, FieldStatus.Start);
-            mainField.UpdateItem(0, gridSize - 1, FieldStatus.Target);
+            mainField.UpdateItem(startFI.position.X, startFI.position.Y, FieldStatus.Start);
+            mainField.UpdateItem(targetFI.position.X, targetFI.position.Y, FieldStatus.Target);
         }
         private void NewGrid()
         {
