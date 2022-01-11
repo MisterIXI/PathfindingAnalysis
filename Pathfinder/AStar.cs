@@ -53,7 +53,8 @@ namespace Pathfinder
                         if (e.GetStatus() != FieldStatus.Evaluated)
                         {
                             e.updateCosts(targetPoint, currentPoint, diagAllowed);
-
+                            
+                            //todo: Nodes are added multiple times. To fix the data structure would need to be swapped since the priority can't be updated
                             if (!availableNodes.UnorderedItems.Contains((e, e.getFCost())))
                             {
                                 availableNodes.Enqueue(e, e.getFCost());
