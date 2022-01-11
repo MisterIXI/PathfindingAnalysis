@@ -33,6 +33,13 @@ namespace Pathfinder
             InitializeComponent();
             ResizeGrid(gridSize);
             createDetailWindow(DETAIL_SIZE);
+
+            CB_Heuristic_Selection.ItemsSource = FieldItem.HEURISTICS;
+            CB_Heuristic_Selection.SelectedIndex = 0;
+            string? v = CB_Heuristic_Selection.SelectedItem.ToString();
+            if (v == null)
+                throw new ShouldNotHappenException("ComboBox not initialized correctly!");
+            mainField.heuristic = v;
         }
         public void createDetailWindow(int detailSize)
         {
@@ -76,12 +83,13 @@ namespace Pathfinder
                     textB_F.HorizontalAlignment = HorizontalAlignment.Center;
                     textB_F.Text = i + " | " + j;
                     textB_F.TextAlignment = TextAlignment.Center;
+                    textB_F.Margin = new Thickness(5);
                     Grid.SetColumn(textB_F, j);
                     Grid.SetRow(textB_F, i);
                     Path arrow = new Path();
                     arrow.VerticalAlignment = VerticalAlignment.Top;
                     arrow.HorizontalAlignment = HorizontalAlignment.Center;
-                    arrow.Margin = new Thickness(4);
+                    arrow.Margin = new Thickness(9);
                     arrow.Width = 16;
                     arrow.Height = 8;
                     arrow.RenderTransformOrigin = new Point(0.5, 0.5);
@@ -264,6 +272,14 @@ namespace Pathfinder
         {
             LB_DelayLabel.Content = "Delay(ms):\n" + e.NewValue;
             currentAlg.setStepDelay((int)e.NewValue);
+        }
+
+        private void CB_Heuristic_Selection_Changed(object sender, RoutedEventArgs e)
+        {
+            string? v = CB_Heuristic_Selection.SelectedItem.ToString();
+            if (v == null)
+                throw new ShouldNotHappenException("ComboBox not initialized correctly!");
+            mainField.heuristic = v;
         }
 
         private void CB_Delay_Clicked(object sender, RoutedEventArgs e)

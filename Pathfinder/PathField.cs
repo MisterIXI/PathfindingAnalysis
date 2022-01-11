@@ -19,6 +19,7 @@ namespace Pathfinder
         public Coord StartPoint;
         public Coord TargetPoint;
 
+        public string heuristic;
         public PathField(int gridSize, GridWindow gridWindow)
         {
             CreateNewGrid(gridSize);

@@ -38,8 +38,7 @@ namespace Pathfinder
 
         public static readonly int DIAGONAL_COST = 14;
         public static readonly int NORMAL_COST = 10;
-        readonly string HEURISTIC = "qiao";
-
+        public static readonly List<string> HEURISTICS = new List<string> { "Qiao", "Stanford Diag", "Seb Lague" };
 
         private PathField parentField;
         private GridWindow parentWindow;
@@ -109,16 +108,24 @@ namespace Pathfinder
         {
             if (this == target)
                 return 0;
-            switch (HEURISTIC)
+            switch (parentField.heuristic)
             {
-                case "stanford_diag":
+                case "Qiao":
+                    {
+                        int dx = Math.Abs(position.X - target.position.X);
+                        int dy = Math.Abs(position.Y - target.position.Y);
+                        if (NORMAL_COST * (dx + dy) == 0)
+                            throw new ShouldNotHappenException("What");
+                        return NORMAL_COST * (dx + dy);
+                    }
+                case "Stanford Diag":
                     {
                         //"diagonal" from here http://theory.stanford.edu/~amitp/GameProgramming/Heuristics.html
                         int distanceX = Math.Abs(position.X - target.position.X);
                         int distanceY = Math.Abs(position.Y - target.position.Y);
                         return NORMAL_COST * (distanceY + distanceX) + (DIAGONAL_COST - 2 * NORMAL_COST) * Math.Min(distanceY, distanceX);
                     }
-                case "SebLague":
+                case "Seb Lague":
                     {
                         int dx = Math.Abs(position.X - target.position.X);
                         int dy = Math.Abs(position.Y - target.position.Y);
@@ -126,14 +133,6 @@ namespace Pathfinder
                             return DIAGONAL_COST * dy + NORMAL_COST * (dx - dy);
                         return DIAGONAL_COST * dx + NORMAL_COST * (dy - dx);
 
-                    }
-                case "qiao":
-                    {
-                        int dx = Math.Abs(position.X - target.position.X);
-                        int dy = Math.Abs(position.Y - target.position.Y);
-                        if (NORMAL_COST * (dx + dy) == 0)
-                            throw new ShouldNotHappenException("What");
-                        return NORMAL_COST * (dx + dy);
                     }
                 default:
                     throw new ShouldNotHappenException("Heuristic constant not set right" + this);
